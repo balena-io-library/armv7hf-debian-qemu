@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"syscall"
 )
 
 func crossBuildStart() {
@@ -28,12 +29,12 @@ func crossBuildEnd() {
 	}
 }
 
-func runShell() {
+func runShell() error {
 	cmd := exec.Command("/usr/bin/qemu-arm-static", append([]string{"-0", "/bin/sh", "/bin/sh"}, os.Args[1:]...)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.Run()
+	return cmd.Run()
 }
 
 func main() {
@@ -43,8 +44,20 @@ func main() {
 	case "cross-build-end":
 		crossBuildEnd()
 	case "/bin/sh":
+		code := 0
 		crossBuildEnd()
-		runShell()
+
+		if err := runShell(); err != nil {
+			code = 1
+			if exiterr, ok := err.(*exec.ExitError); ok {
+				if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+					code = status.ExitStatus()
+				}
+			}
+		}
+
 		crossBuildStart()
+
+		os.Exit(code)
 	}
 }

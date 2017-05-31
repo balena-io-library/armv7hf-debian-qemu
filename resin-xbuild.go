@@ -8,10 +8,18 @@ import (
 )
 
 func crossBuildStart() {
+	if _, err := os.Stat("/bin/sh.real"); os.IsNotExist(err) {
+		err = os.Link("/bin/sh", "/bin/sh.real")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	err := os.Remove("/bin/sh")
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = os.Link("/usr/bin/resin-xbuild", "/bin/sh")
 	if err != nil {
 		log.Fatal(err)

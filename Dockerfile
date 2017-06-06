@@ -1,3 +1,8 @@
-FROM resin/armv7hf-debian:jessie
+FROM resin/amd64-debian:jessie
 
-COPY bin/ /usr/bin/
+RUN apt-get update && apt-get install -y golang curl python-pip
+
+# Install AWS CLI
+RUN pip install awscli
+
+COPY . /

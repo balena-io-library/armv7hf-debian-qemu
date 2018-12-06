@@ -5,36 +5,45 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+	"fmt"
+	"io/ioutil"
 )
+
+func checkError(e error) {
+    if e != nil {
+        log.Fatal(e)
+    }
+}
 
 func crossBuildStart() {
 	if _, err := os.Stat("/bin/sh.real"); os.IsNotExist(err) {
 		err = os.Link("/bin/sh", "/bin/sh.real")
-		if err != nil {
-			log.Fatal(err)
-		}
+		checkError(err)
 	}
 
 	err := os.Remove("/bin/sh")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkError(err)
 
 	err = os.Link("/usr/bin/resin-xbuild", "/bin/sh")
-	if err != nil {
-		log.Fatal(err)
+	checkError(err)
+
+	if _, err := os.Stat("/.balena/image-info"); err == nil {
+		info, err := ioutil.ReadFile("/.balena/image-info")
+		checkError(err)
+
+		fmt.Print(string(info))
+
+		err = os.Rename("/.balena/image-info", "/.balena/image-info_")
+		checkError(err)
 	}
 }
 
 func crossBuildEnd() {
 	err := os.Remove("/bin/sh")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkError(err)
+
 	err = os.Link("/bin/sh.real", "/bin/sh")
-	if err != nil {
-		log.Fatal(err)
-	}
+	checkError(err)
 }
 
 func runShell() error {

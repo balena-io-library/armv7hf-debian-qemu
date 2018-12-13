@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	filepath "path/filepath"
 	"syscall"
 )
 
@@ -53,7 +54,9 @@ func runShell() error {
 }
 
 func main() {
-	switch os.Args[0] {
+	command := filepath.Base(os.Args[0])
+
+	switch command {
 	case "cross-build-start":
 		crossBuildStart()
 	case "cross-build-end":
